@@ -2,7 +2,7 @@
   "name": "contract_frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://crackhd.github.io/tg_partner",
+  "homepage": "http://crackhd.github.io/tg_partner_web",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
