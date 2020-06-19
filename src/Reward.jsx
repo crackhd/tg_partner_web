@@ -28,10 +28,6 @@ export async function contract() {
    return ctr;
 }
 
-export async function contractBalance() {
-	return await web3.eth.getBalance(await address());
-}
-
 
 export const abi = [
 	{

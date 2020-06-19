@@ -4,7 +4,7 @@ import React from 'react';
 import './App.css';
 import { InputGroup, FormControl, Jumbotron, Button, Alert, Row, Col, Table, Card, ListGroup, Badge } from 'react-bootstrap';
 import { UncontrolledTooltip } from 'reactstrap';
-import { web3, contract, contractBalance, usdToEther, etherToUsd } from './Reward.jsx';
+import { web3, contract, usdToEther, etherToUsd } from './Reward.jsx';
 import Web3 from 'web3';
 import etherLogo from'./ether.svg';
 import JavascriptTimeAgo from 'javascript-time-ago';
@@ -173,8 +173,7 @@ class App extends React.Component {
 
       let rubyToEther = Number(Web3.utils.fromWei(weiPerToken.toString(), 'ether'));
 
-      let balanceWei = await contractBalance();
-      let balanceEther = Number(Web3.utils.fromWei(balanceWei.toString(), 'ether'));
+      let balanceEther = rubyToEther * Number(totalSupply);
 
       let user = accounts[0];
       let userBalance = Number(BigInt(await ctr.methods.balanceOf(user).call()));
@@ -891,7 +890,7 @@ class App extends React.Component {
 
           <div>
               <p style={{color: 'gray'}}>
-                1⃣ Открываем <a href="https://crackhd.github.com/tg_partner_web">страницу</a> смарт-контракта (<strong>готово!</strong>)
+                1⃣ Открываем <a href="https://crackhd.github.io/tg_partner_web">страницу</a> смарт-контракта (<strong>готово!</strong>)
               </p><p>
                 2⃣ Копируем ссылку на какой-нибудь пост в Telegram, которому мы хотим долить просмотров
               </p><p>
