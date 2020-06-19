@@ -1,23 +1,27 @@
 {
   "files": {
-    "main.css": "/tg_partner_web/static/css/main.5f361e03.chunk.css",
-    "main.js": "/tg_partner_web/static/js/main.fc9914d6.chunk.js",
-    "main.js.map": "/tg_partner_web/static/js/main.fc9914d6.chunk.js.map",
-    "runtime-main.js": "/tg_partner_web/static/js/runtime-main.4d0bbd3f.js",
-    "runtime-main.js.map": "/tg_partner_web/static/js/runtime-main.4d0bbd3f.js.map",
-    "static/js/2.167444d0.chunk.js": "/tg_partner_web/static/js/2.167444d0.chunk.js",
-    "static/js/2.167444d0.chunk.js.map": "/tg_partner_web/static/js/2.167444d0.chunk.js.map",
+    "main.css": "/tg_partner_web/static/css/main.b03f1d94.chunk.css",
+    "main.js": "/tg_partner_web/static/js/main.42bbd014.chunk.js",
+    "main.js.map": "/tg_partner_web/static/js/main.42bbd014.chunk.js.map",
+    "runtime-main.js": "/tg_partner_web/static/js/runtime-main.8e450d92.js",
+    "runtime-main.js.map": "/tg_partner_web/static/js/runtime-main.8e450d92.js.map",
+    "static/css/2.829c9cb5.chunk.css": "/tg_partner_web/static/css/2.829c9cb5.chunk.css",
+    "static/js/2.6d850ae0.chunk.js": "/tg_partner_web/static/js/2.6d850ae0.chunk.js",
+    "static/js/2.6d850ae0.chunk.js.map": "/tg_partner_web/static/js/2.6d850ae0.chunk.js.map",
     "index.html": "/tg_partner_web/index.html",
-    "precache-manifest.7290541c0435f50b553b2f10d5161506.js": "/tg_partner_web/precache-manifest.7290541c0435f50b553b2f10d5161506.js",
+    "precache-manifest.8a91f9a34ca2ad7c69378c1a7d55b811.js": "/tg_partner_web/precache-manifest.8a91f9a34ca2ad7c69378c1a7d55b811.js",
     "service-worker.js": "/tg_partner_web/service-worker.js",
-    "static/css/main.5f361e03.chunk.css.map": "/tg_partner_web/static/css/main.5f361e03.chunk.css.map",
-    "static/js/2.167444d0.chunk.js.LICENSE.txt": "/tg_partner_web/static/js/2.167444d0.chunk.js.LICENSE.txt",
-    "static/media/logo.svg": "/tg_partner_web/static/media/logo.5d5d9eef.svg"
+    "static/css/2.829c9cb5.chunk.css.map": "/tg_partner_web/static/css/2.829c9cb5.chunk.css.map",
+    "static/css/main.b03f1d94.chunk.css.map": "/tg_partner_web/static/css/main.b03f1d94.chunk.css.map",
+    "static/js/2.6d850ae0.chunk.js.LICENSE.txt": "/tg_partner_web/static/js/2.6d850ae0.chunk.js.LICENSE.txt",
+    "static/media/App.css": "/tg_partner_web/static/media/background.1fa5e140.webp",
+    "static/media/ether.svg": "/tg_partner_web/static/media/ether.a7b9547a.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.4d0bbd3f.js",
-    "static/js/2.167444d0.chunk.js",
-    "static/css/main.5f361e03.chunk.css",
-    "static/js/main.fc9914d6.chunk.js"
+    "static/js/runtime-main.8e450d92.js",
+    "static/css/2.829c9cb5.chunk.css",
+    "static/js/2.6d850ae0.chunk.js",
+    "static/css/main.b03f1d94.chunk.css",
+    "static/js/main.42bbd014.chunk.js"
   ]
 }
