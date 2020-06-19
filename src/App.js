@@ -4,8 +4,8 @@ import React from 'react';
 import './App.css';
 import { InputGroup, FormControl, Jumbotron, Button, Alert, Row, Col, Table, Card, ListGroup, Badge } from 'react-bootstrap';
 import { UncontrolledTooltip } from 'reactstrap';
+import { web3, contract, contractBalance, usdToEther, etherToUsd } from './Reward.jsx';
 import Web3 from 'web3';
-import { address, abi, network } from './Reward.jsx';
 import etherLogo from'./ether.svg';
 import JavascriptTimeAgo from 'javascript-time-ago';
 import ReactTimeAgo from 'react-time-ago';
@@ -16,19 +16,8 @@ import ru from 'javascript-time-ago/locale/ru';
 JavascriptTimeAgo.addLocale(en);
 JavascriptTimeAgo.addLocale(ru);
 
-const usdToEther = 0.0044;
-const etherToUsd = 228.28;
-const exampleRewardPoints = [ 15, 50, 150, 800 ];
+const exampleRewardPoints = [ 15, 50, 100, 300, 450, 800, 1000, 15000 ];
 const CHALLENGE_FLAGS_DEFAULT = 256;
-
-const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
-
-function contract() {
-   let ctr = new web3.eth.Contract(abi, address);
-   ctr.options.gas = 5000000;
-
-   return ctr;
-}
 
 class App extends React.Component {
   constructor(props) {
@@ -49,8 +38,6 @@ class App extends React.Component {
         examples: [],
         challenges: [],
 
-        averageRewardUsd: 0,
-        averageRewardRuby: 0,
         myBalanceRuby: 0,
         myBalanceUsd: 0,
 
@@ -92,7 +79,7 @@ class App extends React.Component {
       });
     }
 
-  newChallenge() {
+  async newChallenge() {
       if (this.state.inputURL == "") {
           return;
       }
@@ -116,152 +103,137 @@ class App extends React.Component {
           return;
       }
 
-      let ctr = contract();
+      let ctr = await contract();
       let self = this;
 
-      web3.eth.requestAccounts().then(async function(accounts) {
-          if(accounts.length == 0) {
-              alert('Не вижу аккаунты Ethereum!');
-              return;
-          }
-          let account = accounts[0];
-          await ctr.methods.newChallenge(group, resourceId, CHALLENGE_FLAGS_DEFAULT).send({from: account, value: 0, gaslimit: 100000});
-          self.setState({
-              inputURL: ""
-          });
-      })
+      let accounts = await web3.eth.requestAccounts();
+
+      if(accounts.length == 0) {
+          alert('Не вижу аккаунты Ethereum!');
+          return;
+      }
+      let account = accounts[0];
+      await ctr.methods.newChallenge(group, resourceId, CHALLENGE_FLAGS_DEFAULT).send({from: account, value: 0, gaslimit: 100000});
+      this.setState({
+          inputURL: ""
+      });
   }
 
-    sell() {
-        let ctr = contract();
-        let amount = this.state.inputSell;
-        let self = this;
-        web3.eth.requestAccounts().then(async function(accounts) {
-            if(accounts.length == 0) {
-                alert('Не вижу аккаунты Ethereum!');
-                return;
-            }
-            let account = accounts[0];
-            await ctr.methods.sell(amount).send({from: account, value: 0, gaslimit: 100000});
-            self.setState({
-                inputURL: ""
-            });
-        })
+    async sell() {
+      let accounts = await web3.eth.requestAccounts();
+      if(accounts.length == 0) {
+          alert('Не вижу аккаунты Ethereum!');
+          return;
+      }
+      let account = accounts[0];
+      let ctr = await contract();
+      let t = ctr.methods.sell(this.state.inputSell);
+      await this.transact(ctr, t);
+      this.setState({
+          inputURL: ""
+      });
     }
 
   async loadExamples() {
       var examples = [];
 
-      var sumRewards = 0;
-
-      let ctr = contract();
+      let ctr = await contract();
 
       for(var i = 0; i < exampleRewardPoints.length; i++) {
           let points = exampleRewardPoints[i];
-          let reward = Number(BigInt(await ctr.methods.rewardForPoints(points, "").call()));
+          let reward = Number(BigInt(await ctr.methods.rewardForPoints(points).call()));
           examples.push({
               views: points,
               rubys: reward,
               ether: reward * this.state.rubyToEther,
               usd: reward * this.state.rubyToEther * etherToUsd,
           });
-          sumRewards += reward / points;
       }
-
-      let avgRewardRubys = (sumRewards / exampleRewardPoints.length).toFixed(0);
 
       this.setState({
           examples: examples,
-          averageRewardRuby: avgRewardRubys,
-          averageRewardUsd: avgRewardRubys * this.state.rubyToEther * etherToUsd,
       });
   }
 
-  updateContract() {
+  async updateContract() {
 
       let self = this;
-      web3.eth.getAccounts().then(function(accounts) {
-          if(accounts.length == 0) {
-              console.log('Не вижу аккаунты Ethereum!');
-              return
-          }
+      let accounts = await web3.eth.getAccounts();
 
-          web3.eth.net.getNetworkType().then(async function(netId) {
-              if(netId != network) {
-                  console.log("Network not matching " + netId);
-                  return;
-              }
+      if(accounts.length == 0) {
+          console.log('Не вижу аккаунты Ethereum!');
+          return
+      }
 
-             let ctr = contract();
+      let ctr = await contract();
 
-             let duration = Number(await ctr.methods.duration().call()) / 60;
-             let weiPerToken = BigInt(await ctr.methods.weiPerToken().call());
-             let totalSupply = BigInt(await ctr.methods.totalSupply().call());
-             let totalBank = BigInt(await ctr.methods.totalBank().call());
+      let duration = Number(await ctr.methods.duration().call()) / 60;
+      let weiPerToken = BigInt(await ctr.methods.weiPerToken().call());
+      let totalSupply = BigInt(await ctr.methods.totalSupply().call());
 
-             let rubyToEther = Number(Web3.utils.fromWei(weiPerToken.toString(), 'ether'));
+      let rubyToEther = Number(Web3.utils.fromWei(weiPerToken.toString(), 'ether'));
 
-             let balanceWei = await web3.eth.getBalance(address);
-             let balanceEther = Number(Web3.utils.fromWei(balanceWei.toString(), 'ether'));
+      let balanceWei = await contractBalance();
+      let balanceEther = Number(Web3.utils.fromWei(balanceWei.toString(), 'ether'));
 
-             let user = accounts[0];
-             let userBalance = Number(BigInt(await ctr.methods.balanceOf(user).call()));
-             let userBalanceEther = (userBalance * rubyToEther).toFixed();
+      let user = accounts[0];
+      let userBalance = Number(BigInt(await ctr.methods.balanceOf(user).call()));
+      let userBalanceEther = (userBalance * rubyToEther).toFixed();
 
-             let ceo = await ctr.methods.ceo().call();
-             let minBankForChallenge = Number(await ctr.methods.minBankForChallenge().call());
-             let serviceCostsEnabled = Number(await ctr.methods.serviceCostsEnabled().call());
-             let requestTimeout = Number(await ctr.methods.requestTimeout().call());
+      let ceo = await ctr.methods.ceo().call();
+      let minBankForChallenge = Number(await ctr.methods.minBankForChallenge().call());
+      let serviceCostsEnabled = Number(await ctr.methods.serviceCostsEnabled().call());
+      let requestTimeout = Number(await ctr.methods.requestTimeout().call());
 
-             self.setState({
-                 web3Ready: true,
-                 user: user,
-                 ceo: ceo,
-                 balanceEther: balanceEther,
-                 durationMinutes: Number(duration),
-                 rubyToEther: rubyToEther,
-                 totalSupply: Number(totalSupply),
-                 totalSupplyUsd: Number(totalSupply) * rubyToEther * etherToUsd,
-                 totalBank: Number(totalBank),
-                 totalBankUsd: Number(totalBank) * rubyToEther * etherToUsd,
-                 myBalanceRuby: userBalance,
-                 myBalanceUsd: userBalance * rubyToEther * etherToUsd,
-                 settings: {
-                     ceoDurationMinutes: Number(duration),
-                     ceoMinBankForChallenge: Number(minBankForChallenge),
-                     ceoServiceCostsOn: serviceCostsEnabled,
-                     ceoWeiPerToken: Number(weiPerToken),
-                     ceoTimeoutMinutes: Number(requestTimeout / 60),
-                 },
-                 inputBot: ceo,
-             }, async () => {
-                  await self.loadChallenges();
-                  self.loadExamples();
+      var totalBank = BigInt(await ctr.methods.totalBank().call());
+      if(totalBank > 0) {
+          totalBank = Number(totalBank);
+      } else {
+          totalBank = 0;
+      }
 
-                  if (self.isCEO())
-                      await self.loadRules();
-             })
-         });
-      });
+      this.setState({
+          web3Ready: true,
+          user: user,
+          ceo: ceo,
+          balanceEther: balanceEther,
+          durationMinutes: Number(duration),
+          rubyToEther: rubyToEther,
+          totalSupply: Number(totalSupply),
+          totalSupplyUsd: Number(totalSupply) * rubyToEther * etherToUsd,
+          totalBank: totalBank,
+          totalBankUsd: totalBank * rubyToEther * etherToUsd,
+          myBalanceRuby: userBalance,
+          myBalanceUsd: userBalance * rubyToEther * etherToUsd,
+          settings: {
+              ceoDurationMinutes: Number(duration),
+              ceoMinBankForChallenge: Number(minBankForChallenge),
+              ceoServiceCostsOn: serviceCostsEnabled,
+              ceoWeiPerToken: Number(weiPerToken),
+              ceoTimeoutMinutes: Number(requestTimeout / 60),
+          },
+          inputBot: ceo,
+      }, async () => {
+           await self.loadChallenges();
+           self.loadExamples();
+
+           if (self.isCEO())
+               await self.loadRules();
+      })
   }
 
   async loadRules() {
-      let ctr = contract();
+      let ctr = await contract();
       let rules = [];
-      for (var i = 0; ; i++) {
-          try {
-              let rule = await ctr.methods.rules(i).call();
-              if (rule.threshold == 0 && rule.rewardForPoint == 0) {
-                  break;
-              }
-              rules.push({
-                  group: rule.group,
-                  threshold: rule.threshold,
-                  rewardForPoint: rule.rewardForPoint,
-              });
-          } catch {
-              break;
-          }
+
+      let numberOfRules = Number(await ctr.methods.numberOfRules().call());
+
+      for (var i = 0; i < numberOfRules; i++) {
+          let r = await ctr.methods.getRule(i).call();
+          rules.push({
+              threshold:        Number(r[0]),
+              rewardForPoint:   Number(r[1]),
+          });
       }
 
       console.log(JSON.stringify({rulesLoaded: rules}));
@@ -271,7 +243,19 @@ class App extends React.Component {
       });
   }
 
-  statusAndTip(key, status) {
+  examplesCardColumn(start, end) {
+      return (<Col md={{ span: 5, offset: start % 4 != 0 ? 0 : 1 }}>
+          <Card>
+            <ListGroup variant="flush">
+              <ListGroup.Item>
+                    {this.state.examples.slice(start, end).map(this.exampleCardItemUI.bind(this))}
+              </ListGroup.Item>
+            </ListGroup>
+          </Card>
+      </Col>);
+  }
+
+  statusAndTip(key, status, error) {
       switch (parseInt(status, 10)) {
           case 1:
             return (<span id={"statustip-"+key}>
@@ -299,6 +283,7 @@ class App extends React.Component {
               Ошибка ﹖
               <UncontrolledTooltip placement="right" target={"statustip-"+key}>
     Произошла ошибка и кампания была прервана. Награда не будет начислена.
+    Бот передал: <code>{error}</code>
   </UncontrolledTooltip>
           </span>);
       case 5:
@@ -319,21 +304,28 @@ class App extends React.Component {
   }
 
   async loadChallenges() {
-    let ctr = contract();
+    let ctr = await contract();
     let numChallenges = Number(await ctr.methods.numChallenges().call());
 
       let challenges = [];
 
       for (var i = numChallenges - 1; i > numChallenges - 10 && i >= 0; i--) {
             let data = await ctr.methods.challenges(i).call();
+
+            var timestamp = Number(data.createdAt);
+            if (data.data.status == 2) {
+                timestamp = Number(data.data.confirmedAt) + this.state.durationMinutes * 60;
+            }
+
             challenges.push({
-                time: Number(data.createdAt),
+                time: timestamp,
                 resource: Number(data.resource),
                 group: data.group,
                 status: Number(data.data.status),
                 reward: Number(data.data.reward),
                 before: Number(data.data.pointsBefore),
                 after: Number(data.data.pointsAfter),
+                error: data.data.error,
             });
       }
 
@@ -419,7 +411,6 @@ class App extends React.Component {
                   <ListGroup.Item>Общий банк ~ <strong>${this.state.totalSupplyUsd.toFixed(0)}</strong> (💎{this.state.totalSupply})</ListGroup.Item>
                   <ListGroup.Item>Свободный банк ~ <strong>${this.state.totalBankUsd.toFixed(0)}</strong> (💎{this.state.totalBank})</ListGroup.Item>
                 </ListGroup>
-                <ListGroup.Item>Средняя награда за хит ~ <strong>${this.state.averageRewardUsd.toFixed(4)}</strong> (💎{this.state.averageRewardRuby})</ListGroup.Item>
               </Card>
       </div>)
   }
@@ -432,9 +423,9 @@ class App extends React.Component {
       return (<div key={i}>
 
           &nbsp;&nbsp;&nbsp;&nbsp;за {example.views} просмотров:<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp; 💎 {example.rubys}<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;💎 {example.rubys}<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;{this.ETH()} <strong>{example.ether}</strong><br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;~&nbsp;<strong>${example.usd.toFixed(4)}</strong> при выводе<br/><br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;~&nbsp;<strong>${example.usd.toFixed(4)}</strong><br/><br/>
           </div>);
   }
 
@@ -444,34 +435,37 @@ class App extends React.Component {
           <div style={{height: '24px'}}></div>
 
           <Row>
+            <Col md={{span: 10, offset: 1}}>
             <h3>Калькулятор</h3>
                 <p>&nbsp;&nbsp;&nbsp;&nbsp;$1&nbsp;=&nbsp;{this.ETH()} {usdToEther} (💎{usdToEther / this.state.rubyToEther})<br/><br/></p>
+            </Col>
           </Row>
 
-                    <Alert>У вознаграждений есть коэффициент, меняющийся с ростом просмотров для предотвращения неэффективного расхода бюджета партнерки (банка).</Alert>
+                    <Alert id="calculator">
+                                        Награда вычисляется на основе добавленных просмотров за время работы кампании.
+                                        Посмотрите реальные расчеты по некоторым конкретным результатам кампаний:
+
+                                        <UncontrolledTooltip target="calculator">
+
+                                            У вознаграждений есть коэффициент, меняющийся с ростом просмотров
+                                            для предотвращения неэффективного расхода бюджета партнерки (банка).
+                                        </UncontrolledTooltip>
+                                        </Alert>
 
           <div style={{height: '7px'}}></div>
 
           <Row>
 
-              <Col md={6}>
-                  <Card>
-                    <ListGroup variant="flush">
-                      <ListGroup.Item>
-                            {this.state.examples.slice(0, 2).map(this.exampleCardItemUI.bind(this))}
-                      </ListGroup.Item>
-                    </ListGroup>
-                  </Card>
-              </Col>
-              <Col md={6}>
-                  <Card>
-                    <ListGroup variant="flush">
-                      <ListGroup.Item>
-                            {this.state.examples.slice(2).map(this.exampleCardItemUI.bind(this))}
-                      </ListGroup.Item>
-                    </ListGroup>
-                  </Card>
-              </Col>
+              {this.examplesCardColumn(0, 2)}
+              {this.examplesCardColumn(2, 4)}
+
+          </Row>
+
+            <Row style={{height: '14px'}}></Row>
+
+          <Row>
+              {this.examplesCardColumn(4, 6)}
+              {this.examplesCardColumn(6, 8)}
           </Row>
 
       </div>)
@@ -479,7 +473,7 @@ class App extends React.Component {
 
   tableUI() {
       return (<Row>
-      <Col md={12}>
+      <Col md={{ span: 10, offset: 1 }}>
       <h2>Последние кампании</h2>
 
           <Button variant="success" onClick={this.updateContract.bind(this)} disabled={!this.state.web3Ready}>обновить</Button>
@@ -501,12 +495,19 @@ class App extends React.Component {
                   {this.state.challenges.map((challenge, i) => {
                   // Return the element. Also pass key
                   return (<tr key={i}>
-                    <td>{this.statusAndTip(i, challenge.status)}</td>
+                    <td>{this.statusAndTip(i, challenge.status, challenge.error)}</td>
                     <td>{challenge.group}</td>
                     <td>{challenge.resource}</td>
                     <td><ReactTimeAgo date={new Date(challenge.time*1000)} locale="ru" /></td>
-                    <td>{challenge.before} / {challenge.after}</td>
-                    <td>💎{challenge.reward} <strong>~ ${(challenge.reward * this.state.rubyToEther).toFixed(3)}</strong></td>
+                    <td>
+                        {challenge.before} / {challenge.after}
+                    </td>
+                    <td>
+                        {challenge.status > 1
+                            ? (<span>💎{challenge.reward} <strong>~ ${(challenge.reward * this.state.rubyToEther * etherToUsd).toFixed(2)}</strong></span>)
+                            : null
+                        }
+                    </td>
                   </tr>)
                   })}
                   </tbody>
@@ -591,26 +592,6 @@ class App extends React.Component {
       return this.state.user == this.state.ceo && this.state.ceo.length > 10;
   }
 
-  removeRule(index) {
-      let rules = [];
-      for(var i = 0; i < this.state.rules.length; i++) {
-          if(i != index) {
-              rules.push(this.state.rules[i]);
-          }
-      }
-      this.setState({
-          rules: rules,
-      });
-  }
-
-  changeRule(index, key, val) {
-      let rules = this.state.rules;
-      rules[index][key] = val;
-      this.setState({
-          rules: rules,
-      });
-  }
-
   settings(key, value) {
       this.state.settings[key] = value;
       this.setState({
@@ -630,6 +611,22 @@ class App extends React.Component {
       });
   }
 
+  async removeRule(index) {
+      let rules = this.state.rules;
+      rules.splice(index, 1);
+      this.setState({
+          rules: rules,
+      });
+  }
+
+  changeRule(index, key, val) {
+      let rules = this.state.rules;
+      rules[index][key] = val;
+      this.setState({
+          rules: rules,
+      });
+  }
+
   ceoUI() {
       return (<div>
           <Row style={{height: '84px'}}></Row>
@@ -641,27 +638,17 @@ class App extends React.Component {
                 <Table striped bordered hover size="sm">
                     <thead>
                     <tr>
-                    <th></th>
-                      <th>Group</th>
-                      <th>Min Points</th>
+                        <th></th>
+                      <th>Points Above</th>
                       <th>Reward for point</th>
                     </tr>
                     </thead>
                     <tbody>
                     {this.state.rules.map((rule, i) => {
-                    // Return the element. Also pass key
                     return (<tr key={i}>
                         <td>
-                                            <span onClick={() => this.removeRule(i)}>➖</span>
+                                            <span onClick={() => this.removeRule(i)} title="Убрать строку правил">➖</span>
                             </td>
-                      <td>
-                      <FormControl
-                          placeholder="group"
-                          aria-label="group"
-                          value={rule.group}
-                          onChange={evt => this.changeRule(i, 'group', evt.target.value)}
-                        />
-                      </td>
                       <td>
                           <FormControl
                               placeholder="threshold"
@@ -684,9 +671,11 @@ class App extends React.Component {
                     </Table>
 
 
+                        <Button variant="danger" id="basic-addon2" onClick={this.ceoUpdateRules.bind(this)}>Save rules</Button>
 
               </Col>
-                  <Col md={6}>
+
+              <Col md={6}>
                     <h3>Bot Authorization</h3>
 
 
@@ -709,21 +698,17 @@ class App extends React.Component {
                       />
                       </InputGroup>
 
+                                            <p></p>
+                                                                  <p></p>
+
+                      <Button variant="danger" id="basic-addon2" onClick={this.ceoSetBot.bind(this)}>Change bot authorization</Button>
+
                     </Col>
 
 
           </Row>
-          <Row>
 
-                      <Col md={6}>
-                          <Button variant="danger" id="basic-addon2" onClick={this.ceoRules.bind(this)}>Update rules</Button>
-                      </Col>
-                          <Col md={6}>
-                              <Button variant="danger" id="basic-addon2" onClick={this.ceoSetBot.bind(this)}>Change bot authorization</Button>
-                          </Col>
-        </Row>
-
-                                  <Row style={{height: '44px'}}></Row>
+          <Row style={{height: '44px'}}></Row>
 
         <Row>
 
@@ -790,23 +775,16 @@ class App extends React.Component {
       </div>);
   }
 
-  async ceoRules() {
-      let rules = [];
+  async ceoUpdateRules() {
+      let payload = [];
       for(var i = 0; i < this.state.rules.length; i++) {
           let r = this.state.rules[i];
-          rules.push({
-              group: r.group,
-              threshold: parseInt(r.threshold, 10),
-              rewardForPoint: parseInt(r.rewardForPoint, 10),
-          });
+          payload.push(r.threshold);
+          payload.push(r.rewardForPoint);
       }
-      let account = this.state.ceo;
-
-      console.log(JSON.stringify({rulesUpdate: rules}));
-
-      let ctr = contract();
-      let t = ctr.methods.ceoUpdateRules(rules);
-      await this.transact(t);
+      let ctr = await contract();
+      let t = ctr.methods.ceoUpdateRules(payload);
+      await this.transact(ctr, t);
   }
 
   async ceoSetBot() {
@@ -816,19 +794,19 @@ class App extends React.Component {
               bots: [this.state.inputBot],
           }
       }));
-      let ctr = contract();
+      let ctr = await contract();
       let t = ctr.methods.ceoAuthBots(this.state.inputBotAuth, [this.state.inputBot]);
-      await this.transact(t);
+      await this.transact(ctr, t);
   }
 
-  async transact(setData) {
+  async transact(ctr, setData) {
       var gasPrice = web3.eth.gasPrice;
 
       await setData
           .estimateGas(
               {
                   from: this.state.ceo,
-                  to: address,
+                  to: contract().address,
                   gasPrice: gasPrice
               }, async (error, estimatedGas) => {
 
@@ -839,7 +817,7 @@ class App extends React.Component {
 
                   const transaction = {
                     from: this.state.ceo,
-                    to: address,
+                    to: ctr.address,
                     value: '0x00',
                     gas: estimatedGas + 1,
                     gasPrice: gasPrice + 1,
@@ -865,9 +843,9 @@ class App extends React.Component {
     let requestTimeout = this.state.settings.ceoTimeoutMinutes * 60;
     let serviceCostsEnabled = (this.state.settings.ceoServiceCostsOn == "1");
 
-    let ctr = contract();
+    let ctr = await contract();
     let t = ctr.methods.ceoUpdate(minBankForChallenge, duration, weiPerToken, requestTimeout, serviceCostsEnabled);
-    await this.transact(t);
+    await this.transact(ctr, t);
   }
 
   footerUI() {
@@ -898,10 +876,19 @@ class App extends React.Component {
       <Col md={6}>
         <Jumbotron>
           <h1>Партнерка</h1>
+          <p></p>
+          <p></p>
           <p>
-            Здесь можно добавить свою рекламную кампанию для автоматического
+            Здесь можно добавить свою <span className="dotted-ul" id="campaigns">рекламную кампанию</span> для автоматического
             получения вознаграждения.
           </p>
+
+
+          <UncontrolledTooltip target="campaigns">
+            Вы можете получить вознаграждение в криптовалюте за <strong>просмотры</strong> к публикуемым постам.
+            Для этого, перед тем, как лить свои просмотры, нужно создать с помощью этого контракта "челлендж" к посту, указав URL.
+          </UncontrolledTooltip>
+
           <div>
               <p style={{color: 'gray'}}>
                 1⃣ Открываем <a href="https://crackhd.github.com/tg_partner_web">страницу</a> смарт-контракта (<strong>готово!</strong>)
@@ -915,6 +902,7 @@ class App extends React.Component {
                 5⃣ Меняем 💎 на {this.ETH()}. Для этого на странице контракта есть кнопка <Badge variant="primary">Sell</Badge>
               </p>
           </div>
+          <p style={{height:16}}></p>
           <p>
           <a href="https://academy.binance.com/ru/blockchain/what-are-smart-contracts" target="_blank">
             <Button variant="info">Как это работает?</Button>

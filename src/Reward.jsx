@@ -1,6 +1,75 @@
-export const address = "0x439ad5727aa905aa01e588e80a09cdbf7a34f10f";
-export const network = "rinkeby";
+
+import Web3 from 'web3';
+
+export const usdToEther = 0.0044;
+export const etherToUsd = 228.28;
+
+const netToAddress = {
+	'rinkeby': '0x44654b94ce5d094cdbcf78011f924f54507e6fdf',
+};
+
+export const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
+
+export async function address() {
+	let netId = await web3.eth.net.getNetworkType();
+
+	if(netToAddress[netId] == undefined) {
+		alert("Текущая сеть партнеркой неподдерживается: " + netId);
+		throw "Unsupported net " + netId;
+	}
+
+	return netToAddress[netId];
+}
+
+export async function contract() {
+   let ctr = new web3.eth.Contract(abi, await address());
+   ctr.options.gas = 5000000;
+
+   return ctr;
+}
+
+export async function contractBalance() {
+	return await web3.eth.getBalance(await address());
+}
+
+
 export const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_weiPerToken",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_minBankForChallenge",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_rewardForPoint",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_duration",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_requestTimeout",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "_serviceCostsEnabled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "constructor"
+	},
 	{
 		"anonymous": false,
 		"inputs": [
@@ -102,6 +171,34 @@ export const abi = [
 		"type": "event"
 	},
 	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_spender",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "remaining",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -123,6 +220,25 @@ export const abi = [
 			}
 		],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -180,10 +296,42 @@ export const abi = [
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "bots",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "buy",
 		"outputs": [],
 		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ceo",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -258,246 +406,14 @@ export const abi = [
 	{
 		"inputs": [
 			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "group",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "threshold",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "rewardForPoint",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct RewardToken.Rule[]",
+				"internalType": "uint256[]",
 				"name": "_rules",
-				"type": "tuple[]"
+				"type": "uint256[]"
 			}
 		],
 		"name": "ceoUpdateRules",
 		"outputs": [],
 		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "deposit",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "group",
-				"type": "string"
-			},
-			{
-				"internalType": "uint32",
-				"name": "resource",
-				"type": "uint32"
-			},
-			{
-				"internalType": "uint32",
-				"name": "flags",
-				"type": "uint32"
-			}
-		],
-		"name": "newChallenge",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "requestTokens",
-				"type": "uint256"
-			}
-		],
-		"name": "sell",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "fallback"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_weiPerToken",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_minBankForChallenge",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_rewardForPoint",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_duration",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_requestTimeout",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_serviceCostsEnabled",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "payable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "remaining",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_owner",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "balance",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "bots",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "ceo",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -634,6 +550,13 @@ export const abi = [
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "deposit",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -707,6 +630,30 @@ export const abi = [
 		"inputs": [
 			{
 				"internalType": "uint256",
+				"name": "_ruleNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "getRule",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "threshold",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rewardForPoint",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
 			}
@@ -768,8 +715,44 @@ export const abi = [
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "group",
+				"type": "string"
+			},
+			{
+				"internalType": "uint32",
+				"name": "resource",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint32",
+				"name": "flags",
+				"type": "uint32"
+			}
+		],
+		"name": "newChallenge",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "numChallenges",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "numberOfRules",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -799,11 +782,6 @@ export const abi = [
 				"internalType": "uint256",
 				"name": "points",
 				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "group",
-				"type": "string"
 			}
 		],
 		"name": "rewardForPoints",
@@ -828,22 +806,25 @@ export const abi = [
 		"name": "rules",
 		"outputs": [
 			{
-				"internalType": "string",
-				"name": "group",
-				"type": "string"
-			},
-			{
 				"internalType": "uint256",
-				"name": "threshold",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "rewardForPoint",
+				"name": "",
 				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "sell",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -915,6 +896,59 @@ export const abi = [
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
@@ -955,5 +989,9 @@ export const abi = [
 		],
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ];
