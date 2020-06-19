@@ -3,9 +3,18 @@
 import React from 'react';
 import './App.css';
 import { InputGroup, FormControl, Jumbotron, Button, Alert, Row, Col, Table, Card, ListGroup, Badge } from 'react-bootstrap';
+import { UncontrolledTooltip } from 'reactstrap';
 import Web3 from 'web3';
 import { address, abi, network } from './Reward.jsx';
 import etherLogo from'./ether.svg';
+import JavascriptTimeAgo from 'javascript-time-ago';
+import ReactTimeAgo from 'react-time-ago';
+
+import en from 'javascript-time-ago/locale/en';
+import ru from 'javascript-time-ago/locale/ru';
+
+JavascriptTimeAgo.addLocale(en);
+JavascriptTimeAgo.addLocale(ru);
 
 const usdToEther = 0.0044;
 const etherToUsd = 228.28;
@@ -29,7 +38,7 @@ class App extends React.Component {
         contract: null,
         web3Ready: false,
 
-        durationMinutes: 600,
+        durationMinutes: 500,
         rubyToEther: 0,
         totalSupplyUsd: 0,
         totalSupply: 0,
@@ -95,7 +104,7 @@ class App extends React.Component {
       }
 
       let [_1, _2, group, postId] = parsed;
-      if (group.length < 5 || group.length > 32) {
+      if (group.length < 4 || group.length > 32) {
           alert("Invalid URL (invalid group)");
           return;
       }
@@ -112,7 +121,7 @@ class App extends React.Component {
 
       web3.eth.requestAccounts().then(async function(accounts) {
           if(accounts.length == 0) {
-              alert("No accounts");
+              alert('Не вижу аккаунты Ethereum!');
               return;
           }
           let account = accounts[0];
@@ -129,7 +138,7 @@ class App extends React.Component {
         let self = this;
         web3.eth.requestAccounts().then(async function(accounts) {
             if(accounts.length == 0) {
-                alert("No accounts");
+                alert('Не вижу аккаунты Ethereum!');
                 return;
             }
             let account = accounts[0];
@@ -173,7 +182,8 @@ class App extends React.Component {
       let self = this;
       web3.eth.getAccounts().then(function(accounts) {
           if(accounts.length == 0) {
-              return alert('Нет вижу аккаунты Ethereum!');
+              console.log('Не вижу аккаунты Ethereum!');
+              return
           }
 
           web3.eth.net.getNetworkType().then(async function(netId) {
@@ -225,7 +235,7 @@ class App extends React.Component {
                  },
                  inputBot: ceo,
              }, async () => {
-                  self.loadChallenges();
+                  await self.loadChallenges();
                   self.loadExamples();
 
                   if (self.isCEO())
@@ -261,17 +271,72 @@ class App extends React.Component {
       });
   }
 
-  loadChallenges() {
-      var challenges = this.state.challenges;
-      challenges.push({
-          group: 'test',
-          status: 'CONFIRMED',
-          resource: 123,
-          time: '13 min',
-          reward: 10,
-          before: 2,
-          after: 10,
-      });
+  statusAndTip(key, status) {
+      switch (parseInt(status, 10)) {
+          case 1:
+            return (<span id={"statustip-"+key}>
+                Не подтверждена ﹖
+                <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+      Подождите, пока бот получит информацию о посте и подтвердит кампанию.
+    </UncontrolledTooltip>
+            </span>);
+            case 2:
+              return (<span id={"statustip-"+key}>
+                  <strong>Запущена</strong> ﹖
+                  <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+        Верифицирована ботом. Начальное количество хитов зафиксировано. Теперь необходимо провести кампанию до истечния срока.
+      </UncontrolledTooltip>
+              </span>);
+          case 3:
+            return (<span id={"statustip-"+key}>
+                Завершена ﹖
+                <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+      Подошла к концу, количество долитых просмотров зафиксировано, награда была начислена на баланс создателя кампании.
+    </UncontrolledTooltip>
+            </span>);
+        case 4:
+          return (<span id={"statustip-"+key}>
+              Ошибка ﹖
+              <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+    Произошла ошибка и кампания была прервана. Награда не будет начислена.
+  </UncontrolledTooltip>
+          </span>);
+      case 5:
+        return (<span id={"statustip-"+key}>
+            Тайм-аут ﹖
+            <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+Отмечена как неудавшаяся из-за отсутстия реакции со стороны бота в понятные рамки.
+</UncontrolledTooltip>
+        </span>);
+          default: // STATUS_INVALID, etc
+            return (<span id={"statustip-"+key}>
+                !UNKNOWN! ﹖
+                <UncontrolledTooltip placement="right" target={"statustip-"+key}>
+      Этот статус не должен быть появится в нормальных условиях
+    </UncontrolledTooltip>
+            </span>);
+      }
+  }
+
+  async loadChallenges() {
+    let ctr = contract();
+    let numChallenges = Number(await ctr.methods.numChallenges().call());
+
+      let challenges = [];
+
+      for (var i = numChallenges - 1; i > numChallenges - 10 && i >= 0; i--) {
+            let data = await ctr.methods.challenges(i).call();
+            challenges.push({
+                time: Number(data.createdAt),
+                resource: Number(data.resource),
+                group: data.group,
+                status: Number(data.data.status),
+                reward: Number(data.data.reward),
+                before: Number(data.data.pointsBefore),
+                after: Number(data.data.pointsAfter),
+            });
+      }
+
       this.setState({
           challenges: challenges
       });
@@ -281,7 +346,7 @@ class App extends React.Component {
       let self = this;
       web3.eth.requestAccounts().then(function(accounts) {
           if(accounts.length == 0) {
-              alert('У вас нет кошельков Metamask в браузере. Интерфейс недоступен');
+              alert('Не вижу аккаунты Ethereum!');
               return;
           }
 
@@ -436,10 +501,10 @@ class App extends React.Component {
                   {this.state.challenges.map((challenge, i) => {
                   // Return the element. Also pass key
                   return (<tr key={i}>
-                    <td>{challenge.status}</td>
+                    <td>{this.statusAndTip(i, challenge.status)}</td>
                     <td>{challenge.group}</td>
                     <td>{challenge.resource}</td>
-                    <td>{challenge.time}</td>
+                    <td><ReactTimeAgo date={new Date(challenge.time*1000)} locale="ru" /></td>
                     <td>{challenge.before} / {challenge.after}</td>
                     <td>💎{challenge.reward} <strong>~ ${(challenge.reward * this.state.rubyToEther).toFixed(3)}</strong></td>
                   </tr>)
