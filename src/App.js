@@ -16,8 +16,8 @@ import ru from 'javascript-time-ago/locale/ru';
 JavascriptTimeAgo.addLocale(en);
 JavascriptTimeAgo.addLocale(ru);
 
-const exampleRewardPoints = [ 15, 50, 100, 300, 450, 800, 1000, 15000 ];
-const CHALLENGE_FLAGS_DEFAULT = 256;
+const exampleRewardPoints = [ 15, 50, 450, 800, 100, 300, 1500, '∞' ];
+const CHALLENGE_FLAGS_DEFAULT = 0;
 
 class App extends React.Component {
   constructor(props) {
@@ -126,7 +126,8 @@ class App extends React.Component {
 
       for(var i = 0; i < exampleRewardPoints.length; i++) {
           let points = exampleRewardPoints[i];
-          let reward = Number(BigInt(await ctr.methods.rewardForPoints(points).call()));
+
+          let reward = Number(BigInt(await ctr.methods.rewardForPoints(points == '∞' ? 15000 : points).call()));
           examples.push({
               views: points,
               rubys: reward,
@@ -422,8 +423,6 @@ class App extends React.Component {
 
   quotesUI() {
       return (<div>
-
-          <div style={{height: '24px'}}></div>
 
           <Row>
             <Col md={{span: 10, offset: 1}}>
@@ -833,7 +832,7 @@ class App extends React.Component {
       await setData
           .estimateGas(
               {
-                  from: this.state.ceo,
+                  from: this.state.user,
                   to: ctr.options.address,
                   gasPrice: gasPrice
               }, async (error, estimatedGas) => {
@@ -844,13 +843,12 @@ class App extends React.Component {
                   console.log ('sending Transaction to the contract');
 
                   const transaction = {
-                    from: this.state.ceo,
+                    from: this.state.user,
                     to: ctr.options.address,
                     value: '0x00',
                     gas: estimatedGas + 1,
                     gasPrice: gasPrice + 1,
                   }
-
 
                   await setData.send( transaction, function(err, txHash) {
                     if (err != null) {
@@ -874,26 +872,6 @@ class App extends React.Component {
     let ctr = await contract();
     let t = ctr.methods.ceoUpdate(minBankForChallenge, duration, weiPerToken, requestTimeout, serviceCostsEnabled);
     await this.transact(ctr, t);
-  }
-
-  footerUI() {
-      return (<Row style={{fontSize: '14px'}}>
-
-      <Col md={6}>
-            <ListGroup variant="flush">
-              <ListGroup.Item>Код контракта опубликован <a href="https://github.com/crackhd/tg_partner_contract">на Github</a></ListGroup.Item>
-                <ListGroup.Item>Код бота опубликован <a href="https://github.com/crackhd/tg_partner">на Github</a></ListGroup.Item>
-                  <ListGroup.Item>Код этой странички опубликован <a href="https://github.com/crackhd/tg_partner_web">на Github</a></ListGroup.Item>
-              </ListGroup>
-      </Col>
-
-          <Col md={6}>
-          <ul>
-          <li>Если вы создали кампанию и ничего не происходит, вы сможете получить компенсацию за потраченный с вашей стороны газ. Для этого можно отправить транзакцию Sell с суммой 0</li>
-          <li>один пользователь одновременно может выполнять лишь одну кампанию до ее завершения (либо до <code>Sell(0)</code>, если кампания повисла)</li>
-          </ul>
-          </Col>
-      </Row>);
   }
 
   render() {
@@ -963,7 +941,7 @@ class App extends React.Component {
         : null
     }
 
-    <Row style={{height: '64px'}}></Row>
+    <Row style={{height: '34px'}}></Row>
 
     {
         this.state.web3Ready
@@ -988,11 +966,27 @@ class App extends React.Component {
 
     <Row style={{height: '84px'}}></Row>
 
-    {
-        this.state.web3Ready
-            ? this.footerUI()
-            : null
-    }
+        <Row style={{fontSize: '14px'}}>
+
+        <Col md={6}>
+              <ListGroup variant="flush">
+                <ListGroup.Item>Код контракта опубликован <a href="https://github.com/crackhd/tg_partner_contract">на Github</a></ListGroup.Item>
+                  <ListGroup.Item>Код бота опубликован <a href="https://github.com/crackhd/tg_partner">на Github</a></ListGroup.Item>
+                    <ListGroup.Item>Код этой странички опубликован <a href="https://github.com/crackhd/tg_partner_web">на Github</a></ListGroup.Item>
+                </ListGroup>
+        </Col>
+
+        {
+            this.state.web3Ready
+                ? (<Col md={6}>
+                    <ul>
+                    <li>Если вы создали кампанию и ничего не происходит, вы сможете получить компенсацию за потраченный с вашей стороны газ. Для этого можно отправить транзакцию Sell с суммой 0</li>
+                    <li>один пользователь одновременно может выполнять лишь одну кампанию до ее завершения (либо до <code>Sell(0)</code>, если кампания повисла)</li>
+                    </ul>
+                </Col>)
+                : null
+        }
+    </Row>
 
     {
         this.state.web3Ready && this.isCEO()

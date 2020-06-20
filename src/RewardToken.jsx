@@ -5,7 +5,7 @@ export const usdToEther = 0.0044;
 export const etherToUsd = 228.28;
 
 const netToAddress = {
-	'rinkeby': '0xDa5Cc6B288B78Ba67555627782A023d90A5C677a',
+	'rinkeby': '0xD196b875f80C6A3AD4351E6Be02510Ed8AA67Bb7',
 };
 
 export const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
@@ -182,6 +182,11 @@ const abi = [
 				"internalType": "string",
 				"name": "error",
 				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "abuse",
+				"type": "bool"
 			}
 		],
 		"name": "botFailChallenge",
@@ -297,13 +302,6 @@ const abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "deposit",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "string",
@@ -316,9 +314,9 @@ const abi = [
 				"type": "uint32"
 			},
 			{
-				"internalType": "uint32",
+				"internalType": "uint8",
 				"name": "flags",
-				"type": "uint32"
+				"type": "uint8"
 			}
 		],
 		"name": "newChallenge",
@@ -537,11 +535,6 @@ const abi = [
 				"type": "uint256"
 			},
 			{
-				"internalType": "uint32",
-				"name": "flags",
-				"type": "uint32"
-			},
-			{
 				"internalType": "string",
 				"name": "group",
 				"type": "string"
@@ -590,13 +583,18 @@ const abi = [
 					},
 					{
 						"internalType": "uint256",
-						"name": "etherCostService",
+						"name": "serviceCost",
 						"type": "uint256"
 					}
 				],
 				"internalType": "struct RewardToken.ChallengeData",
 				"name": "data",
 				"type": "tuple"
+			},
+			{
+				"internalType": "uint8",
+				"name": "flags",
+				"type": "uint8"
 			},
 			{
 				"internalType": "uint256",
@@ -629,6 +627,25 @@ const abi = [
 			}
 		],
 		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "compensations",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -666,44 +683,6 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "duration",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "etherCostService",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "etherUserCompensation",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -869,6 +848,25 @@ const abi = [
 			}
 		],
 		"name": "rules",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "serviceCost",
 		"outputs": [
 			{
 				"internalType": "uint256",
