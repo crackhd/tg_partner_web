@@ -4,7 +4,7 @@ import React from 'react';
 import './App.css';
 import { InputGroup, FormControl, Jumbotron, Button, Alert, Row, Col, Table, Card, ListGroup, Badge } from 'react-bootstrap';
 import { UncontrolledTooltip } from 'reactstrap';
-import { web3, contract, usdToEther, etherToUsd } from './Reward.jsx';
+import { web3, contract, usdToEther, etherToUsd } from './RewardToken.jsx';
 import Web3 from 'web3';
 import etherLogo from'./ether.svg';
 import JavascriptTimeAgo from 'javascript-time-ago';
@@ -59,12 +59,12 @@ class App extends React.Component {
     };
   }
 
-   componentDidMount() {
-        window.addEventListener('load', this.onCompleted.bind(this));
+   async componentDidMount() {
+        window.addEventListener('load', await this.onCompleted.bind(this));
      }
 
-     onCompleted() {
-         web3.eth.getAccounts().then(this.updateContract.bind(this));
+     async onCompleted() {
+         await this.initWeb3();
      }
 
   updateInputSell(evt) {
@@ -104,28 +104,15 @@ class App extends React.Component {
       }
 
       let ctr = await contract();
-      let self = this;
+      let t = await ctr.methods.newChallenge(group, resourceId, CHALLENGE_FLAGS_DEFAULT);
+      await this.transact(ctr, t);
 
-      let accounts = await web3.eth.requestAccounts();
-
-      if(accounts.length == 0) {
-          alert('Не вижу аккаунты Ethereum!');
-          return;
-      }
-      let account = accounts[0];
-      await ctr.methods.newChallenge(group, resourceId, CHALLENGE_FLAGS_DEFAULT).send({from: account, value: 0, gaslimit: 100000});
       this.setState({
           inputURL: ""
       });
   }
 
     async sell() {
-      let accounts = await web3.eth.requestAccounts();
-      if(accounts.length == 0) {
-          alert('Не вижу аккаунты Ethereum!');
-          return;
-      }
-      let account = accounts[0];
       let ctr = await contract();
       let t = ctr.methods.sell(this.state.inputSell);
       await this.transact(ctr, t);
@@ -134,10 +121,8 @@ class App extends React.Component {
       });
     }
 
-  async loadExamples() {
+  async loadExamples(ctr) {
       var examples = [];
-
-      let ctr = await contract();
 
       for(var i = 0; i < exampleRewardPoints.length; i++) {
           let points = exampleRewardPoints[i];
@@ -156,18 +141,12 @@ class App extends React.Component {
   }
 
   async updateContract() {
-
-      let self = this;
-      let accounts = await web3.eth.getAccounts();
-
-      if(accounts.length == 0) {
-          console.log('Не вижу аккаунты Ethereum!');
-          return
-      }
-
       let ctr = await contract();
+      let accounts = await web3.eth.getAccounts();
+      let user = accounts[0];
 
       let duration = Number(await ctr.methods.duration().call()) / 60;
+
       let weiPerToken = BigInt(await ctr.methods.weiPerToken().call());
       let totalSupply = BigInt(await ctr.methods.totalSupply().call());
 
@@ -175,7 +154,6 @@ class App extends React.Component {
 
       let balanceEther = rubyToEther * Number(totalSupply);
 
-      let user = accounts[0];
       let userBalance = Number(BigInt(await ctr.methods.balanceOf(user).call()));
       let userBalanceEther = (userBalance * rubyToEther).toFixed();
 
@@ -191,6 +169,7 @@ class App extends React.Component {
           totalBank = 0;
       }
 
+      let self = this;
       this.setState({
           web3Ready: true,
           user: user,
@@ -213,16 +192,17 @@ class App extends React.Component {
           },
           inputBot: ceo,
       }, async () => {
-           await self.loadChallenges();
-           self.loadExamples();
+           await self.loadChallenges(ctr);
+           await self.loadExamples(ctr);
 
            if (self.isCEO())
-               await self.loadRules();
-      })
+               await self.loadRules(ctr);
+      });
+
+      return ctr;
   }
 
-  async loadRules() {
-      let ctr = await contract();
+  async loadRules(ctr) {
       let rules = [];
 
       let numberOfRules = Number(await ctr.methods.numberOfRules().call());
@@ -258,7 +238,7 @@ class App extends React.Component {
       switch (parseInt(status, 10)) {
           case 1:
             return (<span id={"statustip-"+key}>
-                Не подтверждена ﹖
+                Запускается... ﹖
                 <UncontrolledTooltip placement="right" target={"statustip-"+key}>
       Подождите, пока бот получит информацию о посте и подтвердит кампанию.
     </UncontrolledTooltip>
@@ -302,11 +282,10 @@ class App extends React.Component {
       }
   }
 
-  async loadChallenges() {
-    let ctr = await contract();
+  async loadChallenges(ctr) {
     let numChallenges = Number(await ctr.methods.numChallenges().call());
 
-      let challenges = [];
+    let challenges = [];
 
       for (var i = numChallenges - 1; i > numChallenges - 10 && i >= 0; i--) {
             let data = await ctr.methods.challenges(i).call();
@@ -314,12 +293,16 @@ class App extends React.Component {
             var timestamp = Number(data.createdAt);
             if (data.data.status == 2) {
                 timestamp = Number(data.data.confirmedAt) + this.state.durationMinutes * 60;
+            } else
+            if (data.data.status > 2) {
+                timestamp = Number(data.data.finishedAt);
             }
 
             challenges.push({
                 time: timestamp,
-                resource: Number(data.resource),
+                user: data.user,
                 group: data.group,
+                postId: data.resource,
                 status: Number(data.data.status),
                 reward: Number(data.data.reward),
                 before: Number(data.data.pointsBefore),
@@ -333,16 +316,14 @@ class App extends React.Component {
       });
   }
 
-  initWeb3() {
-      let self = this;
-      web3.eth.requestAccounts().then(function(accounts) {
-          if(accounts.length == 0) {
-              alert('Не вижу аккаунты Ethereum!');
-              return;
-          }
+  async initWeb3() {
+      let accounts = await web3.eth.requestAccounts();
+      if(accounts.length == 0) {
+          alert('Не вижу аккаунты Ethereum!');
+          return;
+      }
 
-          self.updateContract();
-      });
+      await this.updateContract();
   }
 
   allowedSell() {
@@ -387,8 +368,8 @@ class App extends React.Component {
             aria-label="Telegram post URL"
             value={this.state.inputURL}
             onChange={evt => this.updateInputURL(evt)}
-
           />
+
           <InputGroup.Append>
             <Button variant="primary" id="basic-addon2" disabled={!this.state.web3Ready} onClick={this.newChallenge.bind(this)}>New Challenge</Button>
           </InputGroup.Append>
@@ -401,14 +382,25 @@ class App extends React.Component {
       return (<div>
           <div style={{height: '24px'}}></div>
 
-          <h3>Состояние контракта</h3>
+          <h3>Статус</h3>
 
               <div style={{height: '7px'}}></div>
 
               <Card>
                 <ListGroup variant="flush">
-                  <ListGroup.Item>Общий банк ~ <strong>${this.state.totalSupplyUsd.toFixed(0)}</strong> (💎{this.state.totalSupply})</ListGroup.Item>
-                  <ListGroup.Item>Свободный банк ~ <strong>${this.state.totalBankUsd.toFixed(0)}</strong> (💎{this.state.totalBank})</ListGroup.Item>
+                  <ListGroup.Item id="about-supply">
+                      Общий банк ~ <strong>${this.state.totalSupplyUsd.toFixed(0)}</strong> (💎{this.state.totalSupply})
+                      <UncontrolledTooltip target="about-supply" placement="right">
+                          Количество токенов (💎) контракта напрямую привязано к его балансу Ethereum.
+                          Банк растет при пополнении бюджета и уменьшается при выводе рубинов.
+                      </UncontrolledTooltip>
+                  </ListGroup.Item>
+                  <ListGroup.Item id="about-bank">
+                      Свободный банк ~ <strong>${this.state.totalBankUsd.toFixed(0)}</strong> (💎{this.state.totalBank})
+                      <UncontrolledTooltip target="about-bank" placement="right">
+                          Количество неприсвоенных рубинов на балансе контракта; доступный резерв на прямые выплаты для новой кампании.
+                      </UncontrolledTooltip>
+                  </ListGroup.Item>
                 </ListGroup>
               </Card>
       </div>)
@@ -423,8 +415,8 @@ class App extends React.Component {
 
           &nbsp;&nbsp;&nbsp;&nbsp;за {example.views} просмотров:<br/>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;💎 {example.rubys}<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;{this.ETH()} <strong>{example.ether}</strong><br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;~&nbsp;<strong>${example.usd.toFixed(4)}</strong><br/><br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;{this.ETH()} <strong>{example.ether.toFixed(4)}</strong><br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;~&nbsp;<strong>${example.usd.toFixed(2)}</strong><br/><br/>
           </div>);
   }
 
@@ -472,8 +464,8 @@ class App extends React.Component {
 
   tableUI() {
       return (<Row>
-      <Col md={{ span: 10, offset: 1 }}>
-      <h2>Последние кампании</h2>
+      <Col md={{ span: 11, offset: 1 }}>
+      <h2>Текущие кампании</h2>
 
           <Button variant="success" onClick={this.updateContract.bind(this)} disabled={!this.state.web3Ready}>обновить</Button>
 
@@ -483,11 +475,32 @@ class App extends React.Component {
                   <thead>
                   <tr>
                     <th>Статус</th>
-                    <th>Канал</th>
-                    <th>Пост</th>
-                    <th>Время</th>
-                    <th>До / после</th>
-                    <th>Награда</th>
+                    <th>Пользователь</th>
+                    <th id="about-time">
+                        Время
+
+                        <UncontrolledTooltip target="about-time">
+                            Для неподтвержденных - время создания,
+                            для активных - время до завершения,
+                            для завершенных - время завершения
+                        </UncontrolledTooltip>
+                    </th>
+                    <th id="about-views">
+                        До / после
+
+                        <UncontrolledTooltip target="about-views">
+                            Зафиксированное ботом количество просмотров,
+                            обновляется в начале кампании и по завершению
+                        </UncontrolledTooltip>
+                    </th>
+                    <th id="about-rewards">
+                        Награда
+
+                        <UncontrolledTooltip target="about-rewards">
+                            Итоговая награда за работу, считается контрактом разницей
+                            между начальным и конечным количеством просмотров
+                        </UncontrolledTooltip>
+                    </th>
                   </tr>
                   </thead>
                   <tbody>
@@ -495,14 +508,30 @@ class App extends React.Component {
                   // Return the element. Also pass key
                   return (<tr key={i}>
                     <td>{this.statusAndTip(i, challenge.status, challenge.error)}</td>
-                    <td>{challenge.group}</td>
-                    <td>{challenge.resource}</td>
-                    <td><ReactTimeAgo date={new Date(challenge.time*1000)} locale="ru" /></td>
+                    <td>
+                        <p>
+                            <code>{challenge.user}</code>
+                            { challenge.user == this.state.user
+                                ? (<Badge variant="success" style={{marginLeft: 6}}>Вы</Badge>)
+                                : null
+                            }
+                        </p>
+                        <p>ID поста: {challenge.postId}</p>
+
+                    </td>
+                    <td>
+                        { challenge.status == 2
+                            ? <span>Закончится</span>
+                            : null
+                        }
+                        &nbsp;
+                        <ReactTimeAgo date={new Date(challenge.time*1000)} locale="ru" />
+                    </td>
                     <td>
                         {challenge.before} / {challenge.after}
                     </td>
                     <td>
-                        {challenge.status > 1
+                        {challenge.status == 3 || challenge.reward > 0
                             ? (<span>💎{challenge.reward} <strong>~ ${(challenge.reward * this.state.rubyToEther * etherToUsd).toFixed(2)}</strong></span>)
                             : null
                         }
@@ -805,7 +834,7 @@ class App extends React.Component {
           .estimateGas(
               {
                   from: this.state.ceo,
-                  to: contract().address,
+                  to: ctr.options.address,
                   gasPrice: gasPrice
               }, async (error, estimatedGas) => {
 
@@ -816,7 +845,7 @@ class App extends React.Component {
 
                   const transaction = {
                     from: this.state.ceo,
-                    to: ctr.address,
+                    to: ctr.options.address,
                     value: '0x00',
                     gas: estimatedGas + 1,
                     gasPrice: gasPrice + 1,
@@ -934,8 +963,15 @@ class App extends React.Component {
         : null
     }
 
-    <Row style={{height: '54px'}}></Row>
+    <Row style={{height: '64px'}}></Row>
 
+    {
+        this.state.web3Ready
+            ? this.quotesUI()
+            : null
+    }
+
+    <Row style={{height: '54px'}}></Row>
 
     { this.state.web3Ready
         ? this.tableUI()
@@ -947,14 +983,6 @@ class App extends React.Component {
     {
         this.state.web3Ready
             ? this.sellUI()
-            : null
-    }
-
-    <Row style={{height: '64px'}}></Row>
-
-    {
-        this.state.web3Ready
-            ? this.quotesUI()
             : null
     }
 
