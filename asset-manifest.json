@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/tg_partner_web/static/css/main.b03f1d94.chunk.css",
+    "main.css": "/tg_partner_web/static/css/main.172f2f85.chunk.css",
     "main.js": "/tg_partner_web/static/js/main.5b5c143b.chunk.js",
     "main.js.map": "/tg_partner_web/static/js/main.5b5c143b.chunk.js.map",
     "runtime-main.js": "/tg_partner_web/static/js/runtime-main.8e450d92.js",
@@ -9,10 +9,10 @@
     "static/js/2.4a64b844.chunk.js": "/tg_partner_web/static/js/2.4a64b844.chunk.js",
     "static/js/2.4a64b844.chunk.js.map": "/tg_partner_web/static/js/2.4a64b844.chunk.js.map",
     "index.html": "/tg_partner_web/index.html",
-    "precache-manifest.8aae5e6c07978e0b4ef1a4e1cd280313.js": "/tg_partner_web/precache-manifest.8aae5e6c07978e0b4ef1a4e1cd280313.js",
+    "precache-manifest.b4beaa7149fe0502a61b49191f35f793.js": "/tg_partner_web/precache-manifest.b4beaa7149fe0502a61b49191f35f793.js",
     "service-worker.js": "/tg_partner_web/service-worker.js",
     "static/css/2.829c9cb5.chunk.css.map": "/tg_partner_web/static/css/2.829c9cb5.chunk.css.map",
-    "static/css/main.b03f1d94.chunk.css.map": "/tg_partner_web/static/css/main.b03f1d94.chunk.css.map",
+    "static/css/main.172f2f85.chunk.css.map": "/tg_partner_web/static/css/main.172f2f85.chunk.css.map",
     "static/js/2.4a64b844.chunk.js.LICENSE.txt": "/tg_partner_web/static/js/2.4a64b844.chunk.js.LICENSE.txt",
     "static/media/App.css": "/tg_partner_web/static/media/background.1fa5e140.webp",
     "static/media/ether.svg": "/tg_partner_web/static/media/ether.a7b9547a.svg"
@@ -21,7 +21,7 @@
     "static/js/runtime-main.8e450d92.js",
     "static/css/2.829c9cb5.chunk.css",
     "static/js/2.4a64b844.chunk.js",
-    "static/css/main.b03f1d94.chunk.css",
+    "static/css/main.172f2f85.chunk.css",
     "static/js/main.5b5c143b.chunk.js"
   ]
 }
