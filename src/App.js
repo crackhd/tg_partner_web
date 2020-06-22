@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './App.css';
+import spin from './spin.png';
 import { InputGroup, FormControl, Jumbotron, Button, Alert, Row, Col, Table, Card, ListGroup, Badge } from 'react-bootstrap';
 import { UncontrolledTooltip } from 'reactstrap';
 import { web3, contract, usdToEther, etherToUsd } from './RewardToken.jsx';
@@ -77,6 +78,14 @@ class App extends React.Component {
       this.setState({
         inputURL: evt.target.value
       });
+    }
+
+   InUSD(amount) {
+        let usd = amount * this.state.rubyToEther * etherToUsd;
+        if (usd == 0)
+            return "";
+
+        return "~ " + amount.toFixed(2);
     }
 
   async newChallenge() {
@@ -225,13 +234,11 @@ class App extends React.Component {
 
   examplesCardColumn(start, end) {
       return (<Col md={{ span: 5, offset: start % 4 != 0 ? 0 : 1 }}>
-          <Card>
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                    {this.state.examples.slice(start, end).map(this.exampleCardItemUI.bind(this))}
-              </ListGroup.Item>
-            </ListGroup>
-          </Card>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+                {this.state.examples.slice(start, end).map(this.exampleCardItemUI.bind(this))}
+          </ListGroup.Item>
+        </ListGroup>
       </Col>);
   }
 
@@ -509,7 +516,8 @@ class App extends React.Component {
                     <td>{this.statusAndTip(i, challenge.status, challenge.error)}</td>
                     <td>
                         <p>
-                            <code>{challenge.user}</code>
+                            <Text numberOfLines={1} ellipsizeMode="middle">{challenge.user}</Text>
+
                             { challenge.user == this.state.user
                                 ? (<Badge variant="success" style={{marginLeft: 6}}>Вы</Badge>)
                                 : null
@@ -529,10 +537,11 @@ class App extends React.Component {
                     <td>
                         {challenge.before} / {challenge.after}
                     </td>
-                    <td>
-                        {challenge.status == 3 || challenge.reward > 0
-                            ? (<span>💎{challenge.reward} <strong>~ ${(challenge.reward * this.state.rubyToEther * etherToUsd).toFixed(2)}</strong></span>)
-                            : null
+                    <td title={this.InUSD(challenge.reward)}>
+                        {
+                            challenge.status == 2
+                                ? <img className="spin" src={spin} />
+                                : (challenge.reward != 0 ? <span>💎{challenge.reward}</span> : null)
                         }
                     </td>
                   </tr>)
