@@ -1,27 +1,27 @@
 {
   "files": {
-    "main.css": "/tg_partner_web/static/css/main.172f2f85.chunk.css",
-    "main.js": "/tg_partner_web/static/js/main.8afe9a64.chunk.js",
-    "main.js.map": "/tg_partner_web/static/js/main.8afe9a64.chunk.js.map",
+    "main.css": "/tg_partner_web/static/css/main.570a10ca.chunk.css",
+    "main.js": "/tg_partner_web/static/js/main.75d0da47.chunk.js",
+    "main.js.map": "/tg_partner_web/static/js/main.75d0da47.chunk.js.map",
     "runtime-main.js": "/tg_partner_web/static/js/runtime-main.8e450d92.js",
     "runtime-main.js.map": "/tg_partner_web/static/js/runtime-main.8e450d92.js.map",
     "static/css/2.829c9cb5.chunk.css": "/tg_partner_web/static/css/2.829c9cb5.chunk.css",
-    "static/js/2.4a64b844.chunk.js": "/tg_partner_web/static/js/2.4a64b844.chunk.js",
-    "static/js/2.4a64b844.chunk.js.map": "/tg_partner_web/static/js/2.4a64b844.chunk.js.map",
+    "static/js/2.fbeaf590.chunk.js": "/tg_partner_web/static/js/2.fbeaf590.chunk.js",
+    "static/js/2.fbeaf590.chunk.js.map": "/tg_partner_web/static/js/2.fbeaf590.chunk.js.map",
     "index.html": "/tg_partner_web/index.html",
-    "precache-manifest.7f6af091100cb3b511cd7f9e182ebb5d.js": "/tg_partner_web/precache-manifest.7f6af091100cb3b511cd7f9e182ebb5d.js",
+    "precache-manifest.62004544d09b7bb0e6e955bea6a176bb.js": "/tg_partner_web/precache-manifest.62004544d09b7bb0e6e955bea6a176bb.js",
     "service-worker.js": "/tg_partner_web/service-worker.js",
     "static/css/2.829c9cb5.chunk.css.map": "/tg_partner_web/static/css/2.829c9cb5.chunk.css.map",
-    "static/css/main.172f2f85.chunk.css.map": "/tg_partner_web/static/css/main.172f2f85.chunk.css.map",
-    "static/js/2.4a64b844.chunk.js.LICENSE.txt": "/tg_partner_web/static/js/2.4a64b844.chunk.js.LICENSE.txt",
+    "static/css/main.570a10ca.chunk.css.map": "/tg_partner_web/static/css/main.570a10ca.chunk.css.map",
+    "static/js/2.fbeaf590.chunk.js.LICENSE.txt": "/tg_partner_web/static/js/2.fbeaf590.chunk.js.LICENSE.txt",
     "static/media/App.css": "/tg_partner_web/static/media/background.1fa5e140.webp",
     "static/media/ether.svg": "/tg_partner_web/static/media/ether.a7b9547a.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.8e450d92.js",
     "static/css/2.829c9cb5.chunk.css",
-    "static/js/2.4a64b844.chunk.js",
-    "static/css/main.172f2f85.chunk.css",
-    "static/js/main.8afe9a64.chunk.js"
+    "static/js/2.fbeaf590.chunk.js",
+    "static/css/main.570a10ca.chunk.css",
+    "static/js/main.75d0da47.chunk.js"
   ]
 }
