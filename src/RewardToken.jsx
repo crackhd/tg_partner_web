@@ -1,11 +1,12 @@
 
 import Web3 from 'web3';
 
-export const usdToEther = 0.0044;
-export const etherToUsd = 228.28;
+export const usdToEther = 0.0043;
+export const etherToUsd = 233.33;
 
 const netToAddress = {
-	'rinkeby': '0x9b144dAe441d426b1944bc52d7cF57eb94F22666',
+	'rinkeby': '0x2440D3f81b019a33D7E89C1d1ea9898C965500C7',
+	//'main': '',
 };
 
 export const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
@@ -29,42 +30,6 @@ export async function contract() {
 }
 
 const abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_weiPerToken",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_minBankForChallenge",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_rewardForPoint",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_duration",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_requestTimeout",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "_serviceCostsEnabled",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "payable",
-		"type": "constructor"
-	},
 	{
 		"anonymous": false,
 		"inputs": [
@@ -166,34 +131,6 @@ const abi = [
 		"type": "event"
 	},
 	{
-		"stateMutability": "payable",
-		"type": "fallback"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "remaining",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -215,25 +152,6 @@ const abi = [
 			}
 		],
 		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_owner",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "balance",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -296,42 +214,10 @@ const abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "bots",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "buy",
 		"outputs": [],
 		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "ceo",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -414,6 +300,214 @@ const abi = [
 		"name": "ceoUpdateRules",
 		"outputs": [],
 		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "group",
+				"type": "string"
+			},
+			{
+				"internalType": "uint32",
+				"name": "resource",
+				"type": "uint32"
+			},
+			{
+				"internalType": "uint8",
+				"name": "flags",
+				"type": "uint8"
+			}
+		],
+		"name": "newChallenge",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "sell",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_weiPerToken",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_minBankForChallenge",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_rewardForPoint",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_duration",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_requestTimeout",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "_serviceCostsEnabled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_spender",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "remaining",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "bots",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ceo",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -670,31 +764,8 @@ const abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "group",
-				"type": "string"
-			},
-			{
-				"internalType": "uint32",
-				"name": "resource",
-				"type": "uint32"
-			},
-			{
-				"internalType": "uint8",
-				"name": "flags",
-				"type": "uint8"
-			}
-		],
-		"name": "newChallenge",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
-		"name": "numChallenges",
+		"name": "numberOfRules",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -707,7 +778,7 @@ const abi = [
 	},
 	{
 		"inputs": [],
-		"name": "numberOfRules",
+		"name": "numChallenges",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -767,19 +838,6 @@ const abi = [
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "requestTokens",
-				"type": "uint256"
-			}
-		],
-		"name": "sell",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -870,59 +928,6 @@ const abi = [
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
@@ -963,9 +968,5 @@ const abi = [
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	}
 ];

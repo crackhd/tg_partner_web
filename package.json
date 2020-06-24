@@ -13,6 +13,7 @@
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "react-time-ago": "^6.0.0",
+    "react-truncate": "^2.4.0",
     "reactstrap": "^8.4.1",
     "web3": "^1.2.9"
   },

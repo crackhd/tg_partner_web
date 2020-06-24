@@ -10,6 +10,7 @@ import Web3 from 'web3';
 import etherLogo from'./ether.svg';
 import JavascriptTimeAgo from 'javascript-time-ago';
 import ReactTimeAgo from 'react-time-ago';
+import Truncate from 'react-truncate';
 
 import en from 'javascript-time-ago/locale/en';
 import ru from 'javascript-time-ago/locale/ru';
@@ -169,6 +170,7 @@ class App extends React.Component {
 
       let ceo = await ctr.methods.ceo().call();
       let minBankForChallenge = Number(await ctr.methods.minBankForChallenge().call());
+
       let serviceCostsEnabled = Number(await ctr.methods.serviceCostsEnabled().call());
       let requestTimeout = Number(await ctr.methods.requestTimeout().call());
 
@@ -516,7 +518,7 @@ class App extends React.Component {
                     <td>{this.statusAndTip(i, challenge.status, challenge.error)}</td>
                     <td>
                         <p>
-                            <Text numberOfLines={1} ellipsizeMode="middle">{challenge.user}</Text>
+                            <Truncate lines={1}>{challenge.user}</Truncate>
 
                             { challenge.user == this.state.user
                                 ? (<Badge variant="success" style={{marginLeft: 6}}>Вы</Badge>)
@@ -541,7 +543,7 @@ class App extends React.Component {
                         {
                             challenge.status == 2
                                 ? <img className="spin" src={spin} />
-                                : (challenge.reward != 0 ? <span>💎{challenge.reward}</span> : null)
+                                : (challenge.reward != 0 || challenge.status == 3 ? <span>💎{challenge.reward}</span> : null)
                         }
                     </td>
                   </tr>)
@@ -601,12 +603,12 @@ class App extends React.Component {
 
       <Col md={6}>
       <Alert variant="secondary">
-          <p>Для создания кампаний потребуется изначально закинуть немного {this.ETH()}  на своей кошелек
-          для оплаты расходов на <i>gas</i>.</p>
+          <p>
+              Для обращения к контракту нужно иметь немного {this.ETH()} на кошельке Metamask
+              для оплаты расходов на <i>gas</i>. Благодаря этой незаметной коммисии сеть работает, вознаграждая майнеров.
+          </p>
 
-          <p>Покупки на $4 должно хватить, что бы множество раз создавать кампании.</p>
-
-          <p>Купить эфир на кошелек можно с помощью кнопки <strong>Deposit</strong> в окне Metamask.</p>
+          <p>Эфира на $4 должно хватить, что бы множество раз создавать кампании.</p>
       </Alert>
       <Alert variant="info">
           <p><i>
@@ -989,12 +991,21 @@ class App extends React.Component {
             this.state.web3Ready
                 ? (<Col md={6}>
                     <ul>
-                    <li>Если вы создали кампанию и ничего не происходит, вы сможете получить компенсацию за потраченный с вашей стороны газ. Для этого можно отправить транзакцию Sell с суммой 0</li>
-                    <li>один пользователь одновременно может выполнять лишь одну кампанию до ее завершения (либо до <code>Sell(0)</code>, если кампания повисла)</li>
+                        <li>Если вы создали кампанию и ничего не происходит, вы получаете компенсацию. Получаете ее в дополнение к выводу - при вызове <code>Sell()</code> (даже с суммой 0)</li>
+                        <li>один пользователь одновременно может выполнять лишь одну кампанию до ее завершения (либо до <code>Sell()</code>, если кампания повисла)</li>
+
+                        <li>
+                            два пользователя не могут одновременно лить на один пост
+                        </li>
+                        <li>
+                            если вознаграждение выше доступного в данный момент банка (баланса контракта) бонус все равно будет начислен на баланс. Вывести можно будет столько средств, сколько есть на контракте - остальное будет ждать следующих пополнений банка {this.ETH()} от владельца
+                        </li>
                     </ul>
                 </Col>)
                 : null
         }
+
+
     </Row>
 
     {
